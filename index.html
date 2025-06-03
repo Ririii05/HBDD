@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Birthday Website</title>
+<style>
+ body, html {
+  margin: 0; padding: 0; height: 100%; 
+  background: #ffeff7;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow-x: hidden;
+}
+
+#screen1, #screen2, #screen3 {
+  width: 100%; max-width: 700px; min-height: 100vh;
+  display: none; 
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px;
+}
+
+#screen1.active, #screen2.active, #screen3.active {
+  display: flex;
+}
+
+
+.cake-container {
+      position: relative;
+      width: 250px;
+      height: 280px;
+      /* For perspective */
+      perspective: 800px;
+    }
+
+    /* Cake base */
+    .cake-base {
+      position: absolute;
+      bottom: 0;
+      width: 250px;
+      height: 120px;
+      background: linear-gradient(135deg, #d2691e, #8b4513);
+      border-radius: 0 0 20px 20px;
+      box-shadow: inset 0 -10px 15px rgba(0,0,0,0.3);
+      z-index: 1;
+    }
+
+    /* Cake layers */
+    .cake-layer {
+      position: absolute;
+      width: 220px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 15px;
+      box-shadow: inset 0 5px 10px rgba(255, 255, 255, 0.5);
+    }
+    .layer-1 {
+      bottom: 120px;
+      height: 50px;
+      background: #f5c6a5; /* light sponge cake */
+      box-shadow: inset 0 5px 10px rgba(255, 255, 255, 0.8);
+      border: 3px solid #d7a17a;
+      z-index: 3;
+    }
+    .layer-2 {
+      bottom: 170px;
+      height: 40px;
+      background: #fff4e1; /* cream/frosting */
+      border: 3px solid #f8d9a1;
+      z-index: 4;
+    }
+    .layer-3 {
+      bottom: 210px;
+      height: 30px;
+      background: #f5c6a5;
+      border: 3px solid #d7a17a;
+      z-index: 5;
+    }
+
+    /* Frosting drip on top */
+    .frosting-top {
+      position: absolute;
+      bottom: 240px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 240px;
+      height: 20px;
+      background: #fff8e7;
+      border-radius: 20px 20px 5px 5px;
+      box-shadow: inset 0 5px 8px rgba(255, 255, 255, 0.9);
+      z-index: 6;
+      border: 2px solid #f6e8c3;
+      filter: drop-shadow(0 1px 1px rgba(255,255,255,0.8));
+    }
+
+    /* Candle */
+    .candle {
+      position: absolute;
+      width: 16px;
+      height: 70px;
+      left: 50%;
+      bottom: 260px;
+      transform: translateX(-50%);
+      background: repeating-linear-gradient(
+        to bottom,
+        #fff,
+        #fff 6px,
+        #0077be 6px,
+        #0077be 12px
+      );
+      border-radius: 6px;
+      border: 2px solid #004a75;
+      box-shadow: 0 0 8px rgba(0,119,190,0.6);
+      z-index: 10;
+    }
+
+    /* Flame */
+    .candle.flame::before {
+      content: "";
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 24px;
+      background: radial-gradient(circle at 50% 30%, #fff7b1, #ff9800 60%, transparent 80%);
+      border-radius: 50% 50% 40% 40% / 70% 70% 60% 60%;
+      filter: drop-shadow(0 0 8px #ffa726);
+      animation: flicker 0.15s infinite alternate;
+      z-index: 15;
+    }
+
+    @keyframes flicker {
+      0% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+        filter: drop-shadow(0 0 10px #ffa726);
+      }
+      100% {
+        transform: translateX(-50%) scale(1.1);
+        opacity: 0.85;
+        filter: drop-shadow(0 0 14px #ffb74d);
+      }
+    }
+
+    /* Blow-out animation */
+    .candle.blow-out::before {
+      animation: fadeOut 1.2s forwards;
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+        transform: scale(0.5) translateY(-10px);
+      }
+    }
+
+    /* Puff effect */
+    .puff {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.4rem;
+      opacity: 0;
+      transition: all 1s ease;
+      pointer-events: none;
+      user-select: none;
+      filter: drop-shadow(0 0 2px #bbb);
+      z-index: 12;
+    }
+
+
+
+
+  #playBtn {
+    background: #d6336c;
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 25px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 6px 10px rgba(214,51,108,0.7);
+    transition: background 0.3s ease;
+  }
+  #playBtn:hover {
+    background: #b52857;
+  }
+
+  /* MAIN GALLERY BIGGER */
+  #galleryMain {
+    width: 680px;
+    height: 480px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 35px;
+  }
+  #galleryMain img {
+    position: absolute;
+    top: 50%; left: 50%;
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+    border: 12px solid white;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 1s ease;
+    pointer-events: none;
+  }
+  #galleryMain img.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* THUMBNAIL CONTAINER - STACKED */
+  #thumbnailContainer {
+    position: relative;
+    width: 680px;
+    height: 110px; /* Enough height for stack */
+    margin-bottom: 25px;
+    overflow: visible;
+  }
+  #thumbnailContainer img {
+    width: 110px;
+    height: 82px;
+    object-fit: cover;
+    border: 8px solid white;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    position: absolute;
+    cursor: pointer;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    transition: 
+      transform 0.7s ease,
+      box-shadow 0.3s ease,
+      border-color 0.3s ease,
+      top 0.7s ease,
+      left 0.7s ease;
+  }
+  #thumbnailContainer img:hover {
+    box-shadow: 0 8px 25px rgba(214, 51, 108, 0.8);
+  }
+  #thumbnailContainer img.active-thumb {
+    border-color: #d6336c;
+    box-shadow: 0 10px 30px rgba(214, 51, 108, 0.9);
+  }
+
+  /* NEXT BUTTON on meme video end */
+  #nextToGalleryBtn {
+    background-color: #d6336c;
+    color: white;
+    padding: 12px 36px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    box-shadow: 0 6px 12px rgba(214,51,108,0.8);
+    transition: background 0.3s ease;
+    display: none; /* hidden initially */
+    margin-top: 15px;
+  }
+  #nextToGalleryBtn:hover {
+    background-color: #b52857;
+  }
+
+  /* MEME VIDEO */
+  #memeVideo {
+    max-width: 700px;
+    width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 8px 15px rgba(214, 51, 108, 0.6);
+  }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: Cake Animation + Play Button -->
+<div id="screen1" class="active" style="flex-direction: column; align-items: center; justify-content: center;">
+  <div class="cake-container" id="cake-container">
+    <div class="cake-base"></div>
+    <div class="cake-layer layer-1"></div>
+    <div class="cake-layer layer-2"></div>
+    <div class="cake-layer layer-3"></div>
+    <div class="frosting-top"></div>
+
+    <div class="candle flame" id="candle"></div>
+    <div class="puff" id="puff">💨</div>
+  </div>
+  <button id="playBtn">Play</button>
+</div>
+
+
+<!-- SCREEN 2: Gallery -->
+<div id="screen2">
+  <div id="galleryMain"></div>
+  <div id="thumbnailContainer"></div>
+</div>
+
+<!-- SCREEN 3: Meme Video -->
+<div id="screen3" style="flex-direction: column; align-items: center;">
+  <video id="memeVideo" controls></video>
+  <button id="nextToGalleryBtn">Next (Go to Gallery)</button>
+</div>
+
+<!-- Background Music -->
+<audio id="bgMusic" loop src="BgMusic.mp3"></audio>
+
+<script>
+const candle = document.getElementById("candle");
+const puff = document.getElementById("puff");
+
+let isBlowing = false;
+
+function blowOutCandle() {
+  if (isBlowing || !candle.classList.contains("flame")) return;
+  isBlowing = true;
+
+  candle.classList.add("blow-out");
+  puff.style.opacity = "1";
+  puff.style.transform = "translateX(-50%) translateY(-25px)";
+
+  setTimeout(() => {
+    candle.classList.remove("flame");
+    candle.classList.remove("blow-out");
+    puff.style.opacity = "0";
+    puff.style.transform = "translateX(-50%) translateY(0)";
+    alert("Happy Birthday! 🎉🎂");
+    isBlowing = false;
+  }, 1500);
+}
+
+// Click event to blow out candle manually
+candle.addEventListener("click", blowOutCandle);
+
+// --- Microphone blow detection ---
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    const audioContext = new AudioContext();
+    const analyser = audioContext.createAnalyser();
+    const microphone = audioContext.createMediaStreamSource(stream);
+    const scriptProcessor = audioContext.createScriptProcessor(2048, 1, 1);
+
+    analyser.smoothingTimeConstant = 0.8;
+    analyser.fftSize = 1024;
+
+    microphone.connect(analyser);
+    analyser.connect(scriptProcessor);
+    scriptProcessor.connect(audioContext.destination);
+
+    let blowDetected = false;
+
+    scriptProcessor.onaudioprocess = function() {
+      const array = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(array);
+      let values = 0;
+
+      for (let i = 0; i < array.length; i++) {
+        values += array[i];
+      }
+      const average = values / array.length;
+
+      // Threshold for blow sound - tweak if needed
+      if (average > 30 && !blowDetected && candle.classList.contains("flame")) {
+        blowDetected = true;
+        blowOutCandle();
+
+        // Prevent multiple triggers for 3 seconds
+        setTimeout(() => {
+          blowDetected = false;
+        }, 3000);
+      }
+    };
+  }).catch(err => {
+    alert("Microphone access denied or not supported. You can still click the candle to blow it out.");
+    console.warn('Microphone access denied or not supported.', err);
+  });
+} else {
+  alert("Microphone access is not supported by your browser. Click the candle to blow it out.");
+  console.warn('getUserMedia not supported on this browser.');
+}
+
+const screen1 = document.getElementById('screen1');
+const screen2 = document.getElementById('screen2');
+const screen3 = document.getElementById('screen3');
+const playBtn = document.getElementById('playBtn');
+const bgMusic = document.getElementById('bgMusic');
+const galleryMain = document.getElementById('galleryMain');
+const thumbnailContainer = document.getElementById('thumbnailContainer');
+const memeVideo = document.getElementById('memeVideo');
+const nextToGalleryBtn = document.getElementById('nextToGalleryBtn');
+
+// Meme video source
+memeVideo.src = 'RicaMeme.mp4';
+
+const imgSources = [
+  'images/Arianne1.jpg', 'images/Arianne2.jpg', 'images/Arianne3.jpg', 'images/Arianne4.jpg',
+  'images/Arianne5.jpg', 'images/Arianne6.jpg', 'images/Arianne7.jpg', 'images/Arianne8.jpg',
+  'images/Arianne9.jpg', 'images/ArianneMeme.jpg', 'images/Arianne11.jpg', 'images/ArianneMeme1.jpg',
+  'images/Arianne13.jpg', 'images/ArianneMeme2.jpg', 'images/Arianne10.jpg', 'images/Arianne12.jpg',
+];
+
+let currentIndex = 0;
+let fadeInterval;
+let thumbs = [];
+
+// Initialize gallery images stacked inside #galleryMain
+function initGalleryImages() {
+  galleryMain.innerHTML = '';
+  imgSources.forEach((src, i) => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = `Gallery Image ${i + 1}`;
+    if (i === 0) img.classList.add('active');
+    galleryMain.appendChild(img);
+  });
+}
+
+// Initialize thumbnails stacked in layered style
+function initThumbnails() {
+  thumbnailContainer.innerHTML = '';
+  thumbs = [];
+
+  const offsetX = 25;
+  const offsetY = 10;
+
+  imgSources.forEach((src, i) => {
+    const thumb = document.createElement('img');
+    thumb.src = src;
+    thumb.alt = `Thumbnail ${i + 1}`;
+    thumb.style.position = 'absolute';
+    thumb.style.top = `${(imgSources.length - 1 - i) * offsetY}px`;
+    thumb.style.left = `${(imgSources.length - 1 - i) * offsetX}px`;
+    if (i === 0) thumb.classList.add('active-thumb');
+    thumb.style.cursor = 'pointer';
+    thumb.addEventListener('click', () => {
+      clearInterval(fadeInterval);
+      showImage(i);
+      startAutoFade();
+    });
+    thumbnailContainer.appendChild(thumb);
+    thumbs.push(thumb);
+  });
+}
+
+// Animate thumbnails from stacked to horizontal row with spacing
+function animateThumbnailsExpand() {
+  const containerWidth = thumbnailContainer.clientWidth;
+  const spacing = (containerWidth - (thumbs.length * 110)) / (thumbs.length - 1);
+  thumbs.forEach((thumb, i) => {
+    thumb.style.transition = 'top 0.5s ease, left 0.5s ease';
+    thumb.style.top = `0px`;
+    thumb.style.left = `${i * (110 + spacing)}px`;
+  });
+}
+
+// Show main gallery image by index
+function showImage(index) {
+  const images = galleryMain.querySelectorAll('img');
+  images.forEach((img, i) => {
+    img.classList.toggle('active', i === index);
+  });
+  thumbs.forEach((thumb, i) => {
+    thumb.classList.toggle('active-thumb', i === index);
+  });
+  currentIndex = index;
+}
+
+// Auto fade next image every 3 seconds
+function startAutoFade() {
+  fadeInterval = setInterval(() => {
+    currentIndex = (currentIndex + 1) % imgSources.length;
+    showImage(currentIndex);
+  }, 3000);
+}
+
+// Show screen functions with bgMusic control
+
+function showScreen1() {
+  screen1.classList.add('active');
+  screen2.classList.remove('active');
+  screen3.classList.remove('active');
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+  memeVideo.pause();
+  memeVideo.currentTime = 0;
+  nextToGalleryBtn.style.display = 'none';
+}
+
+function showScreen2() {
+  screen1.classList.remove('active');
+  screen2.classList.add('active');
+  screen3.classList.remove('active');
+  initGalleryImages();
+  initThumbnails();
+  animateThumbnailsExpand();
+  showImage(0);
+  startAutoFade();
+
+  // Play bg music when gallery screen is shown
+  bgMusic.play().catch(e => {
+    console.log('bgMusic play prevented:', e);
+  });
+  memeVideo.pause();
+  memeVideo.currentTime = 0;
+  nextToGalleryBtn.style.display = 'none';
+}
+
+function showScreen3() {
+  screen1.classList.remove('active');
+  screen2.classList.remove('active');
+  screen3.classList.add('active');
+  memeVideo.currentTime = 0;
+  memeVideo.play();
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+  nextToGalleryBtn.style.display = 'none';
+}
+
+// When bgMusic ends, show meme video screen
+bgMusic.addEventListener('ended', () => {
+  showScreen3();
+});
+
+// Button events
+playBtn.addEventListener('click', () => {
+  showScreen3();
+});
+
+// When meme video ends, show Next button
+memeVideo.addEventListener('ended', () => {
+  nextToGalleryBtn.style.display = 'inline-block';
+});
+
+nextToGalleryBtn.addEventListener('click', () => {
+  showScreen2();
+});
+
+// Keyboard navigation for gallery
+window.addEventListener('keydown', e => {
+  if (!screen2.classList.contains('active')) return;
+
+  if (e.key === 'ArrowRight') {
+    clearInterval(fadeInterval);
+    showImage((currentIndex + 1) % imgSources.length);
+    startAutoFade();
+  } else if (e.key === 'ArrowLeft') {
+    clearInterval(fadeInterval);
+    showImage((currentIndex - 1 + imgSources.length) % imgSources.length);
+    startAutoFade();
+  }
+});
+
+// On load start at screen 1
+showScreen1();
+
+</script>
+
+</body>
+</html>
